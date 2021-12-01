@@ -1,2 +1,5 @@
 # CardCarousel-Sample
-https://github.com/uruly/CardCarousel
+
+GitHub: https://github.com/uruly/CardCarousel
+
+Tutorial: https://uruly.xyz/carousel-infinite-scroll/
