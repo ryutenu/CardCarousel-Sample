@@ -15,20 +15,27 @@ class PerCellPagingFlowLayout: UICollectionViewFlowLayout {
     
     override func targetContentOffset(forProposedContentOffset proposedContentOffset: CGPoint, withScrollingVelocity velocity: CGPoint) -> CGPoint {
         
-        var offsetAdjustment: CGFloat = CGFloat(MAXFLOAT)
-        let horizontalOffest: CGFloat = proposedContentOffset.x + (windowWidth - cellWidth)/2
+        var offsetAdjustment = CGFloat(MAXFLOAT)
+        let horizontalOffset = proposedContentOffset.x + (windowWidth - cellWidth)/2
+        
+        guard let collectionView = collectionView else {
+            return proposedContentOffset
+        }
         
         let targetRect = CGRect(x: proposedContentOffset.x,
                                 y: 0,
-                                width: self.collectionView?.bounds.size.width ?? 0,
-                                height: self.collectionView?.bounds.size.height ?? 0)
+                                width: collectionView.bounds.width,
+                                height: collectionView.bounds.height)
         
-        if let array = super.layoutAttributesForElements(in: targetRect) {
-            for layoutAttributes in array {
-                let itemOffset = layoutAttributes.frame.origin.x
-                if abs(itemOffset - horizontalOffest) < abs(offsetAdjustment) {
-                    offsetAdjustment = itemOffset - horizontalOffest
-                }
+        guard let attributesList = super.layoutAttributesForElements(in: targetRect) else {
+            return proposedContentOffset
+        }
+        
+        for attributes in attributesList {
+            let itemOffset = attributes.frame.origin.x
+            
+            if abs(itemOffset - horizontalOffset) < abs(offsetAdjustment) {
+                offsetAdjustment = itemOffset - horizontalOffset
             }
         }
         
