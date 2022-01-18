@@ -14,8 +14,6 @@ class CarouselView: UICollectionView {
     private let colors = [UIColor.blue, UIColor.yellow, UIColor.red, UIColor.green, UIColor.gray]
     private let titles = ["1", "2", "3", "4", "5"]
     
-    /// 無限スクロール
-    private var isInfinity = true
     private var pageTabItemsWidth: CGFloat = 0
     private let pageCount = 5
     
@@ -33,7 +31,7 @@ class CarouselView: UICollectionView {
     convenience init(frame: CGRect){
         let layout = PerCellPagingFlowLayout()
         layout.itemSize = CGSize(width: 200, height: frame.height/2)
-        layout.minimumLineSpacing = -5
+        layout.minimumLineSpacing = -120
         layout.scrollDirection = .horizontal
         layout.sectionInset = UIEdgeInsetsMake(0, 0, 0, 0)
         
@@ -52,6 +50,7 @@ class CarouselView: UICollectionView {
             let cellCenterDisX = abs(screenCenterX - cellCenter.x)
             let s = -0.0009 * cellCenterDisX + 1
             cell.transform = CGAffineTransform(scaleX: s, y: s)
+            cell.layer.zPosition = (1-abs(cellCenterDisX))
         }
     }
 }
@@ -63,7 +62,7 @@ extension CarouselView: UICollectionViewDelegate {
 extension CarouselView: UICollectionViewDataSource {
     
     func collectionView(_ collectionView: UICollectionView, numberOfItemsInSection section: Int) -> Int {
-        return isInfinity ? pageCount * 3 : pageCount
+        return pageCount * 3
     }
     
     func collectionView(_ collectionView: UICollectionView, cellForItemAt indexPath: IndexPath) -> UICollectionViewCell {
@@ -74,7 +73,7 @@ extension CarouselView: UICollectionViewDataSource {
     
     func configureCell(cell: UICollectionViewCell, indexPath: IndexPath) {
         guard let cell = cell as? CarouselCell else { return }
-        let fixedIndex = isInfinity ? indexPath.row % pageCount : indexPath.row
+        let fixedIndex = indexPath.row % pageCount
         
         cell.contentView.layer.borderColor = colors[fixedIndex].cgColor
         cell.titleLabel.text = titles[fixedIndex]
@@ -85,39 +84,14 @@ extension CarouselView: UIScrollViewDelegate {
     
     func scrollViewDidScroll(_ scrollView: UIScrollView) {
         
-        if isInfinity {
-            if pageTabItemsWidth == 0 {
-                // 表示したい要素群のwidthを計算
-                pageTabItemsWidth = floor(scrollView.contentSize.width/3)
-            }
-            
-            if (scrollView.contentOffset.x <= 0) || (pageTabItemsWidth*2 < scrollView.contentOffset.x) {
-                // スクロールした位置がしきい値を超えたら中央に戻す
-                scrollView.contentOffset.x = pageTabItemsWidth
-            }
+        if pageTabItemsWidth == 0 {
+            // 表示したい要素群のwidthを計算
+            pageTabItemsWidth = floor(scrollView.contentSize.width/3)
         }
         
-        guard let collectionView = scrollView as? CarouselView else {
-            return
-        }
-        
-        let cells = collectionView.visibleCells
-        print("cell count: \(cells.count)")
-        
-        for cell in cells {
-            let cellCenter = self.convert(cell.center, to: nil)
-            //let s = -0.00005 * pow(center.x, 2) + 1.5
-            let screenCenterX = UIScreen.main.bounds.width / 2
-            
-            //真ん中までの距離
-            let cellCenterDisX = abs(screenCenterX - cellCenter.x)
-            print(cellCenterDisX)
-            //let s = abs(-0.00005 * pow(cellCenterDisX, 2) + 1.5)
-            let s = -0.0009 * cellCenterDisX + 1
-            let maxScale: CGFloat = 1
-            let minScale: CGFloat = 0.8
-            print("scale\(s)")
-            cell.transform = CGAffineTransform(scaleX: s, y: s)
+        if (scrollView.contentOffset.x <= 0) || (pageTabItemsWidth*2 < scrollView.contentOffset.x) {
+            // スクロールした位置がしきい値を超えたら中央に戻す
+            scrollView.contentOffset.x = pageTabItemsWidth
         }
     }
 }
